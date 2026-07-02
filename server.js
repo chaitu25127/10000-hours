@@ -14,7 +14,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/api', (req, res, next) => {
   db.ensureInit().then(next).catch(err => {
-    res.status(500).json({ error: 'Server initialization failed' });
+    console.error('Init error:', err?.message || err);
+    res.status(500).json({ error: 'Server initialization failed: ' + (err?.message || 'unknown') });
   });
 });
 

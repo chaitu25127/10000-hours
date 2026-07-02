@@ -36,7 +36,9 @@ function run(sql, ...params) {
 }
 
 async function initDb() {
-  const SQL = await initSqlJs();
+  const SQL = await initSqlJs({
+    locateFile: file => path.join(__dirname, '..', 'node_modules', 'sql.js', 'dist', file)
+  });
 
   if (!process.env.VERCEL && fs.existsSync(dbPath)) {
     const buffer = fs.readFileSync(dbPath);
@@ -57,15 +59,23 @@ async function initDb() {
 
 function ensureInit() {
   if (!initPromise) {
-    initPromise = initDb();
+    initPromise = initDb().catch(err => {
+      console.error('DB init error:', err);
+      initPromise = null;
+      throw err;
+    });
   }
   return initPromise;
 }
 
 function saveDb() {
   if (process.env.VERCEL === '1') {
-    const data = db.export();
-    fs.writeFileSync(dbPath, Buffer.from(data));
+    try {
+      const data = db.export();
+      fs.writeFileSync(dbPath, Buffer.from(data));
+    } catch (e) {
+      console.error('saveDb error:', e);
+    }
   }
 }
 
