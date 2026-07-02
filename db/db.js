@@ -2,9 +2,13 @@ const initSqlJs = require('sql.js');
 const path = require('path');
 const fs = require('fs');
 
-const dbPath = path.join(__dirname, '..', 'data.db');
+const dbPath = process.env.VERCEL === '1'
+  ? '/tmp/data.db'
+  : path.join(__dirname, '..', 'data.db');
+
 const schemaPath = path.join(__dirname, 'schema.sql');
 let db = null;
+let initPromise = null;
 
 function exec(sql, params = []) {
   const stmt = db.prepare(sql);
@@ -33,7 +37,8 @@ function run(sql, ...params) {
 
 async function initDb() {
   const SQL = await initSqlJs();
-  if (fs.existsSync(dbPath)) {
+
+  if (!process.env.VERCEL && fs.existsSync(dbPath)) {
     const buffer = fs.readFileSync(dbPath);
     db = new SQL.Database(buffer);
   } else {
@@ -43,13 +48,25 @@ async function initDb() {
   db.run('PRAGMA foreign_keys = ON;');
   const schema = fs.readFileSync(schemaPath, 'utf-8');
   db.run(schema);
-  saveDb();
+
+  if (!process.env.VERCEL) {
+    const data = db.export();
+    fs.writeFileSync(dbPath, Buffer.from(data));
+  }
+}
+
+function ensureInit() {
+  if (!initPromise) {
+    initPromise = initDb();
+  }
+  return initPromise;
 }
 
 function saveDb() {
-  const data = db.export();
-  const buffer = Buffer.from(data);
-  fs.writeFileSync(dbPath, buffer);
+  if (process.env.VERCEL === '1') {
+    const data = db.export();
+    fs.writeFileSync(dbPath, Buffer.from(data));
+  }
 }
 
-module.exports = { initDb, get, all, run, saveDb };
+module.exports = { ensureInit, get, all, run, saveDb };
