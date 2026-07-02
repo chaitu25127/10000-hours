@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Timer — 10000 Hours</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="timer-page">
+    <a href="/dashboard.html" class="timer-back">&larr; Dashboard</a>
+    <button id="theme-btn" class="theme-toggle" onclick="toggleTheme()" style="position:fixed;top:24px;right:24px;z-index:10;background:none;border:none;cursor:pointer;font-size:11px;font-family:var(--font);font-weight:500;text-transform:uppercase;letter-spacing:1.5px;color:var(--gray);padding:4px 8px">DARK</button>
+
+    <div class="timer-body">
+      <div class="timer-task-name" id="timer-task-name">Loading...</div>
+
+      <div class="timer-display" id="timer-display">10,000:00:00</div>
+      <div class="timer-label" id="timer-label">10,000 hours remaining</div>
+
+      <div class="timer-controls">
+        <button id="start-btn" class="timer-btn" disabled>START</button>
+      </div>
+
+      <div class="timer-progress">
+        <div class="timer-progress-bar">
+          <div id="progress-fill" class="timer-progress-fill" style="width:0%"></div>
+        </div>
+        <div class="timer-progress-label">Progress to mastery</div>
+      </div>
+
+      <div class="timer-sessions">
+        <h3>Recent sessions</h3>
+        <div id="session-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/theme.js"></script>
+  <script src="/js/timer.js"></script>
+</body>
+</html>

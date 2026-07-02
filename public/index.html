@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>10000 Hours — Mastery Timer</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="landing">
+    <header class="landing-header">
+      <div class="landing-header-inner">
+        <span class="nav-logo">10000 Hours</span>
+        <div class="nav-links">
+          <button id="theme-btn" class="theme-toggle" onclick="toggleTheme()">DARK</button>
+          <span class="no-auth" style="display:none">
+            <a href="/login.html">Log in</a>
+            <a href="/signup.html" class="btn btn-sm">Sign up</a>
+          </span>
+          <span class="auth-only" style="display:none">
+            <a href="/dashboard.html">Dashboard</a>
+            <a href="#" onclick="API.logout()">Log out</a>
+          </span>
+        </div>
+      </div>
+    </header>
+
+    <main class="landing-hero">
+      <h1>10,000 hours<br>to mastery.</h1>
+      <p>The journey to becoming world-class at anything takes deliberate practice. Track every second as you count down from 10,000 hours.</p>
+      <div class="landing-actions">
+        <a href="/signup.html" class="btn">Start your journey</a>
+        <a href="/login.html" class="btn btn-ghost">Log in</a>
+      </div>
+    </main>
+
+    <section class="landing-section">
+      <h2>The 10,000 Hour Rule</h2>
+      <p>Popularized by Malcolm Gladwell, the 10,000-hour rule suggests that roughly 10,000 hours of deliberate practice are needed to achieve mastery in any field. This timer helps you track your progress.</p>
+      <div class="landing-stats">
+        <div>
+          <div class="stat-number">10,000</div>
+          <div class="stat-label">Hours</div>
+        </div>
+        <div>
+          <div class="stat-number">416</div>
+          <div class="stat-label">Days</div>
+        </div>
+        <div>
+          <div class="stat-number">36M</div>
+          <div class="stat-label">Seconds</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="landing-section">
+      <h2>Start tracking today</h2>
+      <p>Create a task, start the timer, and watch your remaining time decrease. Every second of deliberate practice brings you closer to mastery.</p>
+      <div style="margin-top: 32px;">
+        <a href="/signup.html" class="btn">Create free account</a>
+      </div>
+    </section>
+
+    <footer class="landing-footer">
+      10000 Hours &mdash; Track your journey to mastery.
+    </footer>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/theme.js"></script>
+  <script src="/js/auth.js"></script>
+</body>
+</html>
