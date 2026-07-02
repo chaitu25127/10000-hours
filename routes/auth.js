@@ -5,7 +5,7 @@ const { authenticateToken, generateToken } = require('../middleware/auth');
 
 const router = express.Router();
 
-router.post('/signup', (req, res) => {
+router.post('/signup', async (req, res) => {
   const { username, email, password } = req.body;
 
   if (!username || !email || !password) {
@@ -21,14 +21,16 @@ router.post('/signup', (req, res) => {
   }
 
   try {
-    const existing = db.get('SELECT id FROM users WHERE username = ? OR email = ?', username, email);
+    const existing = await db.get('SELECT id FROM users WHERE username = $1 OR email = $2', username, email);
     if (existing) {
       return res.status(409).json({ error: 'Username or email already taken' });
     }
 
     const passwordHash = bcrypt.hashSync(password, 10);
-    const result = db.run('INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)', username, email, passwordHash);
-    db.saveDb();
+    const result = await db.run(
+      'INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3) RETURNING id',
+      username, email, passwordHash
+    );
 
     const token = generateToken(result.lastInsertRowid);
 
@@ -41,7 +43,7 @@ router.post('/signup', (req, res) => {
   }
 });
 
-router.post('/login', (req, res) => {
+router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -49,7 +51,7 @@ router.post('/login', (req, res) => {
   }
 
   try {
-    const user = db.get('SELECT * FROM users WHERE email = ?', email);
+    const user = await db.get('SELECT * FROM users WHERE email = $1', email);
     if (!user) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
@@ -70,9 +72,9 @@ router.post('/login', (req, res) => {
   }
 });
 
-router.get('/me', authenticateToken, (req, res) => {
+router.get('/me', authenticateToken, async (req, res) => {
   try {
-    const user = db.get('SELECT id, username, email, created_at FROM users WHERE id = ?', req.userId);
+    const user = await db.get('SELECT id, username, email, created_at FROM users WHERE id = $1', req.userId);
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }

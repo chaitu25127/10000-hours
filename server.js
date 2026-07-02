@@ -13,9 +13,12 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/api', (req, res, next) => {
+  if (!process.env.DATABASE_URL) {
+    return res.status(500).json({ error: 'DATABASE_URL environment variable is not set. Add your Neon PostgreSQL connection string in Vercel dashboard.' });
+  }
   db.ensureInit().then(next).catch(err => {
     console.error('Init error:', err?.message || err);
-    res.status(500).json({ error: 'Server initialization failed: ' + (err?.message || 'unknown') });
+    res.status(500).json({ error: 'Server initialization failed. Check Vercel logs for details.' });
   });
 });
 

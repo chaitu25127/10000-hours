@@ -7,15 +7,15 @@ const TEN_THOUSAND_HOURS = 36000000;
 
 router.use(authenticateToken);
 
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
   try {
-    const tasks = db.all(`
+    const tasks = await db.all(`
       SELECT 
         t.id, t.name, t.description, t.created_at,
-        COALESCE(SUM(s.duration_seconds), 0) AS total_seconds
+        COALESCE(SUM(s.duration_seconds), 0)::int AS total_seconds
       FROM tasks t
       LEFT JOIN sessions s ON s.task_id = t.id
-      WHERE t.user_id = ?
+      WHERE t.user_id = $1
       GROUP BY t.id
       ORDER BY t.created_at DESC
     `, req.userId);
@@ -32,7 +32,7 @@ router.get('/', (req, res) => {
   }
 });
 
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
   const { name, description } = req.body;
 
   if (!name || name.trim().length === 0) {
@@ -40,9 +40,13 @@ router.post('/', (req, res) => {
   }
 
   try {
-    const result = db.run('INSERT INTO tasks (user_id, name, description) VALUES (?, ?, ?)', req.userId, name.trim(), description || '');
-    db.saveDb();
-    const task = db.get('SELECT id, name, description, created_at FROM tasks WHERE id = ?', result.lastInsertRowid);
+    const result = await db.run(
+      'INSERT INTO tasks (user_id, name, description) VALUES ($1, $2, $3) RETURNING id',
+      req.userId, name.trim(), description || ''
+    );
+
+    const task = await db.get('SELECT id, name, description, created_at FROM tasks WHERE id = $1', result.lastInsertRowid);
+
     res.status(201).json({
       task: {
         ...task,
@@ -56,15 +60,15 @@ router.post('/', (req, res) => {
   }
 });
 
-router.get('/:id', (req, res) => {
+router.get('/:id', async (req, res) => {
   try {
-    const task = db.get(`
+    const task = await db.get(`
       SELECT 
         t.id, t.name, t.description, t.created_at,
-        COALESCE(SUM(s.duration_seconds), 0) AS total_seconds
+        COALESCE(SUM(s.duration_seconds), 0)::int AS total_seconds
       FROM tasks t
       LEFT JOIN sessions s ON s.task_id = t.id
-      WHERE t.id = ? AND t.user_id = ?
+      WHERE t.id = $1 AND t.user_id = $2
       GROUP BY t.id
     `, req.params.id, req.userId);
 
@@ -72,7 +76,10 @@ router.get('/:id', (req, res) => {
       return res.status(404).json({ error: 'Task not found' });
     }
 
-    const sessions = db.all('SELECT id, duration_seconds, started_at FROM sessions WHERE task_id = ? ORDER BY started_at DESC LIMIT 50', req.params.id);
+    const sessions = await db.all(
+      'SELECT id, duration_seconds, started_at FROM sessions WHERE task_id = $1 ORDER BY started_at DESC LIMIT 50',
+      req.params.id
+    );
 
     res.json({
       task: {
@@ -87,10 +94,13 @@ router.get('/:id', (req, res) => {
   }
 });
 
-router.delete('/:id', (req, res) => {
+router.delete('/:id', async (req, res) => {
   try {
-    const result = db.run('DELETE FROM tasks WHERE id = ? AND user_id = ?', req.params.id, req.userId);
-    db.saveDb();
+    const result = await db.run(
+      'DELETE FROM tasks WHERE id = $1 AND user_id = $2',
+      req.params.id, req.userId
+    );
+
     if (result.changes === 0) {
       return res.status(404).json({ error: 'Task not found' });
     }
@@ -100,7 +110,7 @@ router.delete('/:id', (req, res) => {
   }
 });
 
-router.post('/:id/sessions', (req, res) => {
+router.post('/:id/sessions', async (req, res) => {
   const { duration_seconds } = req.body;
 
   if (!duration_seconds || duration_seconds < 1) {
@@ -108,18 +118,23 @@ router.post('/:id/sessions', (req, res) => {
   }
 
   try {
-    const task = db.get('SELECT id FROM tasks WHERE id = ? AND user_id = ?', req.params.id, req.userId);
+    const task = await db.get('SELECT id FROM tasks WHERE id = $1 AND user_id = $2', req.params.id, req.userId);
     if (!task) {
       return res.status(404).json({ error: 'Task not found' });
     }
 
-    const result = db.run('INSERT INTO sessions (task_id, duration_seconds) VALUES (?, ?)', req.params.id, duration_seconds);
-    db.saveDb();
+    await db.run(
+      'INSERT INTO sessions (task_id, duration_seconds) VALUES ($1, $2)',
+      req.params.id, duration_seconds
+    );
 
-    const total = db.get('SELECT COALESCE(SUM(duration_seconds), 0) AS total FROM sessions WHERE task_id = ?', req.params.id);
+    const total = await db.get(
+      'SELECT COALESCE(SUM(duration_seconds), 0)::int AS total FROM sessions WHERE task_id = $1',
+      req.params.id
+    );
 
     res.status(201).json({
-      session: { id: result.lastInsertRowid, task_id: parseInt(req.params.id), duration_seconds },
+      session: { task_id: parseInt(req.params.id), duration_seconds },
       total_seconds: total.total,
       remaining_seconds: Math.max(0, TEN_THOUSAND_HOURS - total.total),
       progress_percent: Math.min(100, (total.total / TEN_THOUSAND_HOURS) * 100)
