@@ -84,4 +84,23 @@ router.get('/me', authenticateToken, async (req, res) => {
   }
 });
 
+router.get('/users', authenticateToken, async (req, res) => {
+  try {
+    const users = await db.all(`
+      SELECT 
+        u.id, u.username, u.email, u.created_at,
+        COUNT(DISTINCT t.id)::int AS task_count,
+        COALESCE(SUM(s.duration_seconds), 0)::int AS total_seconds
+      FROM users u
+      LEFT JOIN tasks t ON t.user_id = u.id
+      LEFT JOIN sessions s ON s.task_id = t.id
+      GROUP BY u.id
+      ORDER BY u.created_at DESC
+    `);
+    res.json({ users });
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 module.exports = router;
