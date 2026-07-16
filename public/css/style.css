@@ -489,6 +489,21 @@ a:hover {
 .session-time {
   font-family: var(--font-mono);
   color: var(--mid-gray);
+  margin-right: 8px;
+}
+.session-edit-btn,
+.session-del-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 2px 4px;
+  color: var(--gray);
+  transition: color 0.2s;
+}
+.session-edit-btn:hover,
+.session-del-btn:hover {
+  color: var(--near-black);
 }
 
 /* Modal */

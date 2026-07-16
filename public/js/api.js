@@ -30,6 +30,7 @@ const API = {
 
   get(url) { return this.request('GET', url); },
   post(url, body) { return this.request('POST', url, body); },
+  put(url, body) { return this.request('PUT', url, body); },
   del(url) { return this.request('DELETE', url); },
 
   async signup(username, email, password) {
@@ -76,7 +77,20 @@ const API = {
     return this.del(`/api/tasks/${id}`);
   },
 
-  async saveSession(taskId, durationSeconds) {
-    return this.post(`/api/tasks/${taskId}/sessions`, { duration_seconds: Math.round(durationSeconds) });
+  async saveSession(taskId, durationSeconds, startedAt) {
+    const body = { duration_seconds: Math.round(durationSeconds) };
+    if (startedAt) body.started_at = startedAt;
+    return this.post(`/api/tasks/${taskId}/sessions`, body);
+  },
+
+  async updateSession(taskId, sessionId, durationSeconds, startedAt) {
+    return this.put(`/api/tasks/${taskId}/sessions/${sessionId}`, {
+      duration_seconds: Math.round(durationSeconds),
+      started_at: startedAt
+    });
+  },
+
+  async deleteSession(taskId, sessionId) {
+    return this.del(`/api/tasks/${taskId}/sessions/${sessionId}`);
   }
 };

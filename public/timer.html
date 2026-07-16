@@ -29,8 +29,39 @@
       </div>
 
       <div class="timer-sessions">
-        <h3>Recent sessions</h3>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <h3 style="margin:0">Session history</h3>
+          <button id="manual-btn" class="btn btn-sm btn-ghost">+ Manual</button>
+        </div>
         <div id="session-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="manual-modal" class="modal-overlay" style="display:none;">
+    <div class="modal">
+      <h2 id="modal-title">Add manual session</h2>
+      <div class="form-group">
+        <label for="session-date">Date</label>
+        <input type="date" id="session-date" class="form-input">
+      </div>
+      <div style="display:flex;gap:8px">
+        <div class="form-group" style="flex:1">
+          <label for="session-hours">Hours</label>
+          <input type="number" id="session-hours" class="form-input" min="0" placeholder="0">
+        </div>
+        <div class="form-group" style="flex:1">
+          <label for="session-minutes">Minutes</label>
+          <input type="number" id="session-minutes" class="form-input" min="0" max="59" placeholder="0">
+        </div>
+        <div class="form-group" style="flex:1">
+          <label for="session-seconds">Seconds</label>
+          <input type="number" id="session-seconds" class="form-input" min="0" max="59" placeholder="0">
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button id="modal-cancel" class="btn btn-ghost">Cancel</button>
+        <button id="modal-save" class="btn">Save</button>
       </div>
     </div>
   </div>
